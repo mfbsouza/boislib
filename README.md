@@ -25,3 +25,20 @@ allowing them to combine your code with code under other licenses
 
 For more quick information have a look at this [FAQ
 ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).
+
+## Dependencies
+
+### Used libraries
+
+If your platform has this, than you can port to it!
+
+- assert.h
+- stddef.h
+- stdint.h
+
+### Testing dependencies
+
+- [Google Test](https://github.com/google/googletest) for unit testing
+and mocking framework
+- [LCOV](https://github.com/linux-test-project/lcov) for code coverage
+reporting
