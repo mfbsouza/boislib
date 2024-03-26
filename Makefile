@@ -5,7 +5,7 @@ PROJECT = boislib
 TESTDIR = ./tests
 
 # targets
-.PHONY: tests clean coverage
+.PHONY: tests clean coverage report
 
 tests:
 	make -C $(TESTDIR) run_tests
@@ -15,6 +15,9 @@ clean:
 
 coverage:
 	make -C $(TESTDIR) coverage
+
+report:
+	make -C $(TESTDIR) report
 
 format:
 	find . \

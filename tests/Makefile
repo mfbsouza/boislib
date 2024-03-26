@@ -93,13 +93,19 @@ endif
 run_tests: all
 	$(EXEDIR)/$(PROJECT)_tests
 
+run_tests_no_output: all
+	@$(EXEDIR)/$(PROJECT)_tests --gtest_brief=1 > /dev/null
+
 coverage: CFLAGS += --coverage
 coverage: LDFLAGS += --coverage
-coverage: clean run_tests
+coverage: clean run_tests_no_output
+	@echo
 	@lcov --capture --directory $(OBJDIR) \
-		--output-file $(OBJDIR)/coverage.info > /dev/null
-	@genhtml $(OBJDIR)/coverage.info \
-		--output-directory $(BUILDDIR)/coverage > /dev/null
+		--output-file $(BUILDDIR)/coverage.info
+
+report: coverage
+	@genhtml $(BUILDDIR)/coverage.info \
+		--output-directory $(BUILDDIR)/report > /dev/null
 	@echo
 	@echo -n "Written coverage report to $(BUILDDIR)/coverage/index.html"
 	@echo
