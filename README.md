@@ -1,5 +1,9 @@
 # boislib: extending the C language ecosystem
 
+[![Coverage Status
+](https://coveralls.io/repos/github/mfbsouza/boislib/badge.svg?branch=dev)
+](https://coveralls.io/github/mfbsouza/boislib?branch=dev)
+
 boislib is a collection of libraries with useful functions, data structures
 and algorithms to extended the default C ecosystem.
 
