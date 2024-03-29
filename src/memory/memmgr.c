@@ -18,6 +18,9 @@
 #define ALLOCATE(s) ((s) | 0b1)
 
 static void* create_block(void* start, size_t size);
+static void* coalesce_block(const struct mem* mem_ctx, void* start);
+static inline void alloc_block(void* start);
+static inline void free_block(void* start);
 
 void memmgr_init(struct mem* mem_ctx, void* start, size_t size) {
 	assert(mem_ctx);
@@ -32,6 +35,7 @@ void* memmgr_alloc(struct mem* mem_ctx, size_t size) {
 	assert(mem_ctx);
 	assert(size > 0);
 
+	size_t chunk_size;
 	void* ret = NULL;
 	uint8_t* ptr = (uint8_t*)mem_ctx->start;
 	uint8_t* end = (uint8_t*)mem_ctx->end;
@@ -48,25 +52,43 @@ void* memmgr_alloc(struct mem* mem_ctx, size_t size) {
 	}
 
 	if (ptr < end) {
+		chunk_size = GET_SIZE(ptr);
+		create_block(ptr, size);
 		/* check if it needs to break the chunk in two blocks */
-		if (size < GET_SIZE(ptr)) {
-			/* create the new free chunk */
-			SET_SIZE((ptr + size), (GET_SIZE(ptr) - size));
-			SET_SIZE((ptr + (GET_SIZE(ptr) - HEADER_SIZE)),
-					 (GET_SIZE(ptr) - size));
+		if (size < chunk_size) {
+			create_block((ptr + size), (chunk_size - size));
 		}
-		/* allocate the block */
-		SET_SIZE(ptr, ALLOCATE(size));
-		SET_SIZE((ptr + (size - FOOTER_SIZE)), ALLOCATE(size));
-
+		alloc_block(ptr);
 		ret = (void*)(ptr + HEADER_SIZE);
 	}
 	return ret;
 }
 
+void memmgr_free(struct mem* mem_ctx, void* addr) {
+	assert(mem_ctx);
+	assert(addr);
+
+	uint8_t* ptr = (uint8_t*)addr;
+	uint8_t* start = (uint8_t*)mem_ctx->start;
+	uint8_t* end = (uint8_t*)mem_ctx->end;
+
+	/* make sure that the address is inside this heap */
+	if (ptr <= start || ptr >= end)
+		return;
+
+	/* make sure that the block is allocated */
+	ptr -= HEADER_SIZE;
+	if (!IS_ALLOCATED(ptr))
+		return;
+
+	/* frees the block */
+	free_block(ptr);
+	coalesce_block(mem_ctx, ptr);
+}
+
 static void* create_block(void* start, size_t size) {
-	uint16_t* header = NULL;
-	uint16_t* footer = NULL;
+	void* header = NULL;
+	void* footer = NULL;
 	size_t remainder = 0;
 	void* end = NULL;
 
@@ -83,8 +105,66 @@ static void* create_block(void* start, size_t size) {
 	end = (void*)((uint8_t*)start + size);
 
 	header = start;
-	footer = (void*)((uint8_t*)end - FOOTER_SIZE);
-	*header = *footer = (uint16_t)size;
+	footer = (uint8_t*)end - FOOTER_SIZE;
+	SET_SIZE(header, size);
+	SET_SIZE(footer, size);
 
 	return create_block(end, remainder);
+}
+
+static void* coalesce_block(const struct mem* mem_ctx, void* start) {
+	size_t block_size = GET_SIZE(start);
+	void* new_header = NULL;
+	void* new_footer = NULL;
+	void* prev_blk_footer = (uint8_t*)start - HEADER_SIZE;
+	void* next_blk_header = (uint8_t*)start + block_size;
+	uint8_t* begin = (uint8_t*)mem_ctx->start;
+	uint8_t* end = (uint8_t*)mem_ctx->end;
+	uint8_t is_prev_allocated;
+	uint8_t is_next_allocated;
+
+	if ((uint8_t*)prev_blk_footer > begin) {
+		is_prev_allocated = IS_ALLOCATED(prev_blk_footer);
+	} else {
+		is_prev_allocated = 1;
+	}
+	if ((uint8_t*)next_blk_header < end) {
+		is_next_allocated = IS_ALLOCATED(next_blk_header);
+	} else {
+		is_next_allocated = 1;
+	}
+
+	if (is_prev_allocated && is_next_allocated) {
+		return NULL;
+	}
+
+	if (!is_prev_allocated) {
+		new_footer = (uint8_t*)start + (block_size - FOOTER_SIZE);
+		block_size += GET_SIZE(prev_blk_footer);
+		new_header = (uint8_t*)start - GET_SIZE(prev_blk_footer);
+	} else if (!is_next_allocated) {
+		new_header = start;
+		block_size += GET_SIZE(next_blk_header);
+		new_footer = (uint8_t*)start + (block_size - FOOTER_SIZE);
+	}
+	SET_SIZE(new_header, block_size);
+	SET_SIZE(new_footer, block_size);
+
+	return coalesce_block(mem_ctx, new_header);
+}
+
+static inline void alloc_block(void* start) {
+	size_t block_size = GET_SIZE(start);
+	void* header = start;
+	void* footer = (uint8_t*)start + (block_size - FOOTER_SIZE);
+	SET_SIZE(header, ALLOCATE(block_size));
+	SET_SIZE(footer, ALLOCATE(block_size));
+}
+
+static inline void free_block(void* start) {
+	size_t block_size = GET_SIZE(start);
+	void* header = start;
+	void* footer = (uint8_t*)start + (block_size - FOOTER_SIZE);
+	SET_SIZE(header, block_size);
+	SET_SIZE(footer, block_size);
 }

@@ -83,7 +83,7 @@ void* memmgr_alloc(struct mem* mem_ctx, size_t size);
  * @param *mem_ctx: the memory manager context struct
  * @param *addr: the address of allocated region
  */
-void memmgr_free(struct mem* mem_ctx, void* ptr);
+void memmgr_free(struct mem* mem_ctx, void* addr);
 
 /**
  * @brief computes the remaining free bytes

@@ -9,6 +9,7 @@ constexpr unsigned int footer_size = 2;
 constexpr unsigned int min_block_size = 8;
 constexpr unsigned int max_block_size = (0xFFFF ^ 0b111);
 
+constexpr unsigned int tiny_buf_size = min_block_size * 3;
 constexpr unsigned int small_buf_size = 256;
 constexpr unsigned int medium_buf_size = max_block_size;
 constexpr unsigned int big_buf_size = (max_block_size * 2) + 2;
@@ -44,6 +45,24 @@ class MemMgrAllocateTests : public testing::Test {
 	}
 
 	void TearDown() override { delete[] small_buf; }
+};
+
+class MemMgrFreeTests : public testing::Test {
+	protected:
+	struct mem mem;
+	uint8_t* tiny_buf;
+	void *fst_blk, *sec_blk, *trd_blk;
+	size_t size = min_block_size - header_size - footer_size;
+
+	void SetUp() override {
+		tiny_buf = new uint8_t[tiny_buf_size];
+		memmgr_init(&mem, (void*)tiny_buf, tiny_buf_size);
+		fst_blk = memmgr_alloc(&mem, size);
+		sec_blk = memmgr_alloc(&mem, size);
+		trd_blk = memmgr_alloc(&mem, size);
+	}
+
+	void TearDown() override { delete[] tiny_buf; }
 };
 
 TEST_F(MemMgrInitTests, SmallMemory) {
@@ -130,4 +149,38 @@ TEST_F(MemMgrAllocateTests, AllMemoryInMinimumBlockSize) {
 			remaining_size -= min_block_size;
 		}
 	}
+}
+
+TEST_F(MemMgrFreeTests, WrongAddress) {
+	int i;
+	memmgr_free(&mem, &i);
+	ASSERT_EQ((min_block_size | 0b1), *(uint16_t*)&tiny_buf[0]);
+	ASSERT_EQ((min_block_size | 0b1),
+			  *(uint16_t*)&tiny_buf[tiny_buf_size - footer_size]);
+}
+
+TEST_F(MemMgrFreeTests, NoCoalescing) {
+	memmgr_free(&mem, sec_blk);
+	ASSERT_EQ(min_block_size, *(uint16_t*)&tiny_buf[min_block_size]);
+	ASSERT_EQ(min_block_size,
+			  *(uint16_t*)&tiny_buf[min_block_size * 2 - footer_size]);
+}
+
+TEST_F(MemMgrFreeTests, Coalescing) {
+	memmgr_free(&mem, fst_blk);
+	memmgr_free(&mem, trd_blk);
+	memmgr_free(&mem, sec_blk);
+	ASSERT_EQ(tiny_buf_size, *(uint16_t*)&tiny_buf[0]);
+	ASSERT_EQ(tiny_buf_size,
+			  *(uint16_t*)&tiny_buf[tiny_buf_size - footer_size]);
+}
+
+TEST_F(MemMgrFreeTests, AllReadyFreed) {
+	memmgr_free(&mem, fst_blk);
+	memmgr_free(&mem, trd_blk);
+	memmgr_free(&mem, sec_blk);
+	memmgr_free(&mem, sec_blk);
+	ASSERT_EQ(tiny_buf_size, *(uint16_t*)&tiny_buf[0]);
+	ASSERT_EQ(tiny_buf_size,
+			  *(uint16_t*)&tiny_buf[tiny_buf_size - footer_size]);
 }
