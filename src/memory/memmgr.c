@@ -86,6 +86,21 @@ void memmgr_free(struct mem* mem_ctx, void* addr) {
 	coalesce_block(mem_ctx, ptr);
 }
 
+size_t memmgr_remaining(struct mem* mem_ctx) {
+	assert(mem_ctx);
+	size_t size = 0;
+	uint8_t* ptr = (uint8_t*)mem_ctx->start;
+	uint8_t* end = (uint8_t*)mem_ctx->end;
+
+	while (ptr < end) {
+		if (!IS_ALLOCATED(ptr))
+			size += (GET_SIZE(ptr) - METADATA_SIZE);
+		ptr += GET_SIZE(ptr);
+	}
+
+	return size;
+}
+
 static void* create_block(void* start, size_t size) {
 	void* header = NULL;
 	void* footer = NULL;
@@ -113,22 +128,21 @@ static void* create_block(void* start, size_t size) {
 }
 
 static void* coalesce_block(const struct mem* mem_ctx, void* start) {
+	void *new_header, *new_footer;
+	uint8_t is_prev_allocated, is_next_allocated;
+
 	size_t block_size = GET_SIZE(start);
-	void* new_header = NULL;
-	void* new_footer = NULL;
-	void* prev_blk_footer = (uint8_t*)start - HEADER_SIZE;
-	void* next_blk_header = (uint8_t*)start + block_size;
+	uint8_t* prev_blk_footer = (uint8_t*)start - HEADER_SIZE;
+	uint8_t* next_blk_header = (uint8_t*)start + block_size;
 	uint8_t* begin = (uint8_t*)mem_ctx->start;
 	uint8_t* end = (uint8_t*)mem_ctx->end;
-	uint8_t is_prev_allocated;
-	uint8_t is_next_allocated;
 
-	if ((uint8_t*)prev_blk_footer > begin) {
+	if (prev_blk_footer > begin) {
 		is_prev_allocated = IS_ALLOCATED(prev_blk_footer);
 	} else {
 		is_prev_allocated = 1;
 	}
-	if ((uint8_t*)next_blk_header < end) {
+	if (next_blk_header < end) {
 		is_next_allocated = IS_ALLOCATED(next_blk_header);
 	} else {
 		is_next_allocated = 1;

@@ -65,6 +65,24 @@ class MemMgrFreeTests : public testing::Test {
 	void TearDown() override { delete[] tiny_buf; }
 };
 
+class MemMgrRemainingTests : public testing::Test {
+	protected:
+	struct mem mem;
+	uint8_t* tiny_buf;
+	void *fst_blk;
+	size_t size = min_block_size - header_size - footer_size;
+
+	void SetUp() override {
+		tiny_buf = new uint8_t[tiny_buf_size];
+		memmgr_init(&mem, (void*)tiny_buf, tiny_buf_size);
+		fst_blk = memmgr_alloc(&mem, size);
+		memmgr_alloc(&mem, size);
+		memmgr_free(&mem, fst_blk);
+	}
+
+	void TearDown() override { delete[] tiny_buf; }
+};
+
 TEST_F(MemMgrInitTests, SmallMemory) {
 	memmgr_init(&mem, (void*)small_buf, small_buf_size);
 	ASSERT_EQ(mem.start, (void*)small_buf);
@@ -183,4 +201,9 @@ TEST_F(MemMgrFreeTests, AllReadyFreed) {
 	ASSERT_EQ(tiny_buf_size, *(uint16_t*)&tiny_buf[0]);
 	ASSERT_EQ(tiny_buf_size,
 			  *(uint16_t*)&tiny_buf[tiny_buf_size - footer_size]);
+}
+
+TEST_F(MemMgrRemainingTests, MiddleBlockAllocated) {
+	size_t remaining_size = memmgr_remaining(&mem);
+	ASSERT_EQ(remaining_size, (min_block_size*2 - (header_size + footer_size)*2));
 }
