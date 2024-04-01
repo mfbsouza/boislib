@@ -1,8 +1,8 @@
 # boislib: extending the C language ecosystem
 
 [![Coverage Status
-](https://coveralls.io/repos/github/mfbsouza/boislib/badge.svg?branch=dev)
-](https://coveralls.io/github/mfbsouza/boislib?branch=dev)
+](https://coveralls.io/repos/github/mfbsouza/boislib/badge.svg?branch=main)
+](https://coveralls.io/github/mfbsouza/boislib?branch=main)
 
 boislib is a collection of libraries with useful functions, data structures
 and algorithms to extended the default C ecosystem.
@@ -29,6 +29,49 @@ allowing them to combine your code with code under other licenses
 
 For more quick information have a look at this [FAQ
 ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).
+
+## Installing
+
+### As a shared/static library in the system
+
+boislib can be installed in any linux distributions as both
+shared and static libraries. Just clone this repository and do:
+
+``` bash
+make RELEASE=1
+sudo make install RELEASE=1
+```
+
+This will compile all libraries with optimizations turned on than
+install the header files in `/usr/local/include` and the shared and
+static libraries (.so .a) in `/usr/local/lib`. You can also change the
+base path by running
+`sudo make install RELEASE=1 DESTDIR=/my/own/path`.
+Although this may fail if your `DESTDIR` doesn't has a `lib` and `include`
+sub-directory.
+
+### As source code directly into your project tree
+
+Simply go to the [releases page](https://github.com/mfbsouza/boislib/releases),
+download the latest version, decompress it, and copy the contents of the
+boislib directory into your project!
+
+## libraries
+
+Quick summary of the libraries
+
+### memory/memmgr
+
+You give me a contiguous amount of memory, I give you dynamic memory
+allocation! memmgr implements dynamic memory management.
+
+## Contributions
+
+Want to help out and submit your own library to the project? Feel free to!
+
+Contributions can come in many forms. Please check out the [contributing
+](CONTRIBUTING.md)
+documented for more information.
 
 ## Dependencies
 
