@@ -1,4 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
+/*
+ * This file is part of boislib,
+ * a Collection of portable libraries to extended the C ecosystem.
+ *
+ * Copyright (C) 2024 Matheus Souza <mfbsouza.it@gmail.com>
+ */
+
+#ifndef __MEMMGR_H__
+#define __MEMMGR_H__
 
 /* This code implements a contiguous memory managing using
  * a implicit free list with bidirectional coalescing */
@@ -36,9 +45,6 @@
 	 +------------+-------+                  +------------+-------+
 
 */
-
-#ifndef __MEMMGR_H__
-#define __MEMMGR_H__
 
 #include <stddef.h>
 

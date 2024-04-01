@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
+/*
+ * This file is part of boislib,
+ * a Collection of portable libraries to extended the C ecosystem.
+ *
+ * Copyright (C) 2024 Matheus Souza <mfbsouza.it@gmail.com>
+ */
 
 #include <gtest/gtest.h>
 #include <cstdint>
@@ -69,7 +75,7 @@ class MemMgrRemainingTests : public testing::Test {
 	protected:
 	struct mem mem;
 	uint8_t* tiny_buf;
-	void *fst_blk;
+	void* fst_blk;
 	size_t size = min_block_size - header_size - footer_size;
 
 	void SetUp() override {
@@ -205,5 +211,6 @@ TEST_F(MemMgrFreeTests, AllReadyFreed) {
 
 TEST_F(MemMgrRemainingTests, MiddleBlockAllocated) {
 	size_t remaining_size = memmgr_remaining(&mem);
-	ASSERT_EQ(remaining_size, (min_block_size*2 - (header_size + footer_size)*2));
+	ASSERT_EQ(remaining_size,
+			  (min_block_size * 2 - (header_size + footer_size) * 2));
 }

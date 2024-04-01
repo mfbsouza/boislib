@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
+/*
+ * This file is part of boislib,
+ * a Collection of portable libraries to extended the C ecosystem.
+ *
+ * Copyright (C) 2024 Matheus Souza <mfbsouza.it@gmail.com>
+ */
 
 #include "memmgr.h"
 #include <assert.h>
