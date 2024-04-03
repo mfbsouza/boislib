@@ -85,8 +85,10 @@ documented for more information.
 If your platform has this, than you can port to it!
 
 - assert.h
+- stdbool.h
 - stddef.h
 - stdint.h
+- string.h
 
 ### Testing dependencies
 
