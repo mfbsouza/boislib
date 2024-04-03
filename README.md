@@ -65,6 +65,11 @@ Quick summary of the libraries
 You give me a contiguous amount of memory, I give you dynamic memory
 allocation! memmgr implements dynamic memory management.
 
+### data_structures/circular_queue
+
+You give me a contiguous amount of memory, I give a queue!
+circular_queue implements a FIFO data structure.
+
 ## Contributions
 
 Want to help out and submit your own library to the project? Feel free to!
