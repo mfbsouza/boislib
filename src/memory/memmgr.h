@@ -52,8 +52,8 @@
  * @brief the memory manager context struct contains information about the
  * Fake Heap
  *
- * @param *heap_start: The start address of a continuous amount of memory
- * @param *heap_end: The last address of a continuous amount of memory
+ * @param *start: The start address of a continuous amount of memory
+ * @param *end: The last usable address of the memory manager
  */
 struct mem {
 	void* start;
@@ -87,7 +87,7 @@ void* memmgr_alloc(struct mem* mem_ctx, size_t size);
  * @brief frees a continuous memory region
  *
  * @param *mem_ctx: the memory manager context struct
- * @param *addr: the address of allocated region
+ * @param *addr: the address of the allocated region
  */
 void memmgr_free(struct mem* mem_ctx, void* addr);
 
