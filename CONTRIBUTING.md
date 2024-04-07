@@ -45,7 +45,7 @@ and when sending hotfixes to dev and to main
 
 ## Outside contributions
 
-contributions from developers that doesn't have write permissions to
+Contributions from developers that doesn't have write permissions to
 the repository must come from `patches` and/or `pull requests`.
 
 ### General rules around patches
@@ -54,7 +54,7 @@ the repository must come from `patches` and/or `pull requests`.
 2. patches must be signed-off
 3. patches must be atomic changes
 
-### Sugested workflow for patches
+### Suggested workflow for patches
 
 1. create you working branch:
     ```
@@ -95,7 +95,7 @@ the repository must come from `patches` and/or `pull requests`.
 2. pull request must be signed-off
 2. pull request must be atomic changes
 
-## Sugested workflow
+## Suggested workflow
 
 Assuming you're already in the dev branch and you're about to start working
 
