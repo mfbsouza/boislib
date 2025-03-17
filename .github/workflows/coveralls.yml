@@ -1,0 +1,16 @@
+name: Publish code coverage to Coveralls
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4 
+    - name: build coverage container
+      run: |
+        docker build . -f ./docker/coverage.dockerfile -t publish
+        docker run --env COVERALLS_REPO_TOKEN='${{ secrets.COVERALLS_REPO_TOKEN }}' -i publish
