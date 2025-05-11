@@ -11,8 +11,8 @@ and algorithms to extended the default C ecosystem.
 
 As a embedded developer, I sometimes find myself in the need of common well
 know data structures and algorithms that usually comes in many libraries
-that aren't always easily portable. That can be a real pain especially when
-doing firmware and bare-metal work.
+that aren't always available in all platform or easily portable.
+That can be a real pain especially when doing firmware and bare-metal work.
 
 The goal here is to provide implementation to those data structures and 
 algorithms and also to extended and provide not such common ones, making

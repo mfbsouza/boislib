@@ -4,8 +4,8 @@
  * a Collection of portable libraries to extended the C ecosystem.
  */
 
-#ifndef __CIRCULAR_QUEUE_H__
-#define __CIRCULAR_QUEUE_H__
+#ifndef __BOISLIB_CIRCULAR_QUEUE_H__
+#define __BOISLIB_CIRCULAR_QUEUE_H__
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -112,4 +112,4 @@ size_t queue_remaining(struct queue* queue_ctx);
 }
 #endif
 
-#endif /* __CIRCULAR_QUEUE_H__ */
+#endif /* __BOISLIB_CIRCULAR_QUEUE_H__ */
