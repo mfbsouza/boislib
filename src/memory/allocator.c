@@ -4,7 +4,7 @@
  * a Collection of portable libraries to extended the C ecosystem.
  */
 
-#include "memmgr.h"
+#include "allocator.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -26,7 +26,7 @@ static void* coalesce_block(const struct mem* mem_ctx, void* start);
 static inline void alloc_block(void* start);
 static inline void free_block(void* start);
 
-void memmgr_init(struct mem* mem_ctx, void* start, size_t size) {
+void allocator_init(struct mem* mem_ctx, void* start, size_t size) {
 	assert(mem_ctx);
 	assert(start);
 	assert(size >= MIN_BLOCK_SIZE);
@@ -35,7 +35,7 @@ void memmgr_init(struct mem* mem_ctx, void* start, size_t size) {
 	mem_ctx->end = create_block(start, size);
 }
 
-void* memmgr_alloc(struct mem* mem_ctx, size_t size) {
+void* allocator_new(struct mem* mem_ctx, size_t size) {
 	assert(mem_ctx);
 	assert(size > 0);
 
@@ -68,7 +68,7 @@ void* memmgr_alloc(struct mem* mem_ctx, size_t size) {
 	return ret;
 }
 
-void memmgr_free(struct mem* mem_ctx, void* addr) {
+void allocator_delete(struct mem* mem_ctx, void* addr) {
 	assert(mem_ctx);
 	assert(addr);
 
@@ -90,7 +90,7 @@ void memmgr_free(struct mem* mem_ctx, void* addr) {
 	coalesce_block(mem_ctx, ptr);
 }
 
-size_t memmgr_remaining(struct mem* mem_ctx) {
+size_t allocator_remaining(struct mem* mem_ctx) {
 	assert(mem_ctx);
 	size_t size = 0;
 	uint8_t* ptr = (uint8_t*)mem_ctx->start;

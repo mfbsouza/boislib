@@ -4,8 +4,8 @@
  * a Collection of portable libraries to extended the C ecosystem.
  */
 
-#ifndef __MEMMGR_H__
-#define __MEMMGR_H__
+#ifndef __BOISLIB_ALLOCATOR_H__
+#define __BOISLIB_ALLOCATOR_H__
 
 /* This code implements a contiguous memory managing using
  * a implicit free list with bidirectional coalescing */
@@ -65,11 +65,11 @@ extern "C" {
 /**
  * @brief initializes a given memory region as a heap
  *
- * @param *mem_ctx: the memory manager context struct
+ * @param *mem_ctx: the allocator context struct
  * @param *start: The start address of a contiguous amount of memory
  * @param size: how many bytes this memory region has
  */
-void memmgr_init(struct mem* mem_ctx, void* start, size_t size);
+void allocator_init(struct mem* mem_ctx, void* start, size_t size);
 
 /**
  * @brief allocates a contiguous memory region
@@ -79,7 +79,7 @@ void memmgr_init(struct mem* mem_ctx, void* start, size_t size);
  *
  * @retval the start address of the allocated memory region
  */
-void* memmgr_alloc(struct mem* mem_ctx, size_t size);
+void* allocator_new(struct mem* mem_ctx, size_t size);
 
 /**
  * @brief frees a continuous memory region
@@ -87,7 +87,7 @@ void* memmgr_alloc(struct mem* mem_ctx, size_t size);
  * @param *mem_ctx: the memory manager context struct
  * @param *addr: the address of the allocated region
  */
-void memmgr_free(struct mem* mem_ctx, void* addr);
+void allocator_delete(struct mem* mem_ctx, void* addr);
 
 /**
  * @brief computes the remaining free bytes
@@ -96,10 +96,10 @@ void memmgr_free(struct mem* mem_ctx, void* addr);
  *
  * @retval the amount of free bytes
  */
-size_t memmgr_remaining(struct mem* mem_ctx);
+size_t allocator_remaining(struct mem* mem_ctx);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif /* __MEMMGR_H__ */
+#endif /* __BOISLIB_ALLOCATOR_H__ */

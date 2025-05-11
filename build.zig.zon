@@ -1,0 +1,23 @@
+.{
+    .name = .boislib,
+    .version = "1.1.0",
+    .fingerprint = 0xc301c7ad386c252f,
+    .minimum_zig_version = "0.14.0",
+    .dependencies = .{
+        .googletest = .{
+            .url = "git+https://github.com/allyourcodebase/googletest.git#4c5cf0207c4db459d7c950c629398244e13b44b2",
+            .hash = "1220e6a0a3273e7df58603983d4fe03b71861e4d4c60c46f18be64273090f60697f2",
+        },
+        .compile_commands = .{
+            .url = "https://github.com/the-argus/zig-compile-commands/archive/1a71188d1816cc0741785d4694f790a1106a150a.tar.gz",
+            .hash = "1220fd24e1b2dbdcdd90041c83243277435a3a7d333f42b20b8d165fee27d66096f7",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+        "README.md",
+    },
+}

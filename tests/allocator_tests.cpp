@@ -6,7 +6,8 @@
 
 #include <gtest/gtest.h>
 #include <cstdint>
-#include "../memmgr.h"
+
+#include "boislib/allocator.h"
 
 constexpr unsigned int header_size = 2;
 constexpr unsigned int footer_size = 2;
@@ -45,7 +46,7 @@ class MemMgrAllocateTests : public testing::Test {
 
 	void SetUp() override {
 		small_buf = new uint8_t[small_buf_size];
-		memmgr_init(&mem, (void*)small_buf, small_buf_size);
+		allocator_init(&mem, (void*)small_buf, small_buf_size);
 	}
 
 	void TearDown() override { delete[] small_buf; }
@@ -60,10 +61,10 @@ class MemMgrFreeTests : public testing::Test {
 
 	void SetUp() override {
 		tiny_buf = new uint8_t[tiny_buf_size];
-		memmgr_init(&mem, (void*)tiny_buf, tiny_buf_size);
-		fst_blk = memmgr_alloc(&mem, size);
-		sec_blk = memmgr_alloc(&mem, size);
-		trd_blk = memmgr_alloc(&mem, size);
+		allocator_init(&mem, (void*)tiny_buf, tiny_buf_size);
+		fst_blk = allocator_new(&mem, size);
+		sec_blk = allocator_new(&mem, size);
+		trd_blk = allocator_new(&mem, size);
 	}
 
 	void TearDown() override { delete[] tiny_buf; }
@@ -78,17 +79,17 @@ class MemMgrRemainingTests : public testing::Test {
 
 	void SetUp() override {
 		tiny_buf = new uint8_t[tiny_buf_size];
-		memmgr_init(&mem, (void*)tiny_buf, tiny_buf_size);
-		fst_blk = memmgr_alloc(&mem, size);
-		memmgr_alloc(&mem, size);
-		memmgr_free(&mem, fst_blk);
+		allocator_init(&mem, (void*)tiny_buf, tiny_buf_size);
+		fst_blk = allocator_new(&mem, size);
+		allocator_new(&mem, size);
+		allocator_delete(&mem, fst_blk);
 	}
 
 	void TearDown() override { delete[] tiny_buf; }
 };
 
 TEST_F(MemMgrInitTests, SmallMemory) {
-	memmgr_init(&mem, (void*)small_buf, small_buf_size);
+	allocator_init(&mem, (void*)small_buf, small_buf_size);
 	ASSERT_EQ(mem.start, (void*)small_buf);
 	ASSERT_EQ(mem.end, (void*)&small_buf[small_buf_size]);
 	ASSERT_EQ(*(uint16_t*)small_buf, small_buf_size);
@@ -97,7 +98,7 @@ TEST_F(MemMgrInitTests, SmallMemory) {
 }
 
 TEST_F(MemMgrInitTests, MediumMemory) {
-	memmgr_init(&mem, (void*)medium_buf, medium_buf_size);
+	allocator_init(&mem, (void*)medium_buf, medium_buf_size);
 	ASSERT_EQ(mem.start, (void*)medium_buf);
 	ASSERT_EQ(mem.end, (void*)&medium_buf[medium_buf_size]);
 	ASSERT_EQ(*(uint16_t*)medium_buf, medium_buf_size);
@@ -106,7 +107,7 @@ TEST_F(MemMgrInitTests, MediumMemory) {
 }
 
 TEST_F(MemMgrInitTests, BigMemory) {
-	memmgr_init(&mem, (void*)big_buf, big_buf_size);
+	allocator_init(&mem, (void*)big_buf, big_buf_size);
 	ASSERT_EQ(mem.start, (void*)big_buf);
 	ASSERT_EQ(mem.end, (void*)&big_buf[big_buf_size - 2]);
 	ASSERT_EQ(*(uint16_t*)big_buf, max_block_size);
@@ -119,7 +120,7 @@ TEST_F(MemMgrInitTests, BigMemory) {
 
 TEST_F(MemMgrAllocateTests, TryMoreThanBufferSize) {
 	void* ret;
-	ret = memmgr_alloc(&mem, small_buf_size);
+	ret = allocator_new(&mem, small_buf_size);
 	ASSERT_EQ(ret, nullptr);
 }
 
@@ -130,7 +131,7 @@ TEST_F(MemMgrAllocateTests, AllMemoryInOneBlock) {
 	void* allocated_header = mem.start;
 	void* allocated_footer = (void*)((uint8_t*)mem.end - footer_size);
 
-	ret = memmgr_alloc(&mem, size);
+	ret = allocator_new(&mem, size);
 	ASSERT_EQ(ret, (void*)first_usable_byte);
 	ASSERT_EQ((small_buf_size | 0b1), *(uint16_t*)allocated_header);
 	ASSERT_EQ((small_buf_size | 0b1), *(uint16_t*)allocated_footer);
@@ -146,7 +147,7 @@ TEST_F(MemMgrAllocateTests, AllMemoryInMinimumBlockSize) {
 	void *free_header, *free_footer;
 
 	for (i = 0; i < block_amount; i++) {
-		ret = memmgr_alloc(&mem, size);
+		ret = allocator_new(&mem, size);
 		ASSERT_EQ(ret, (void*)first_usable_byte);
 
 		allocated_header = (void*)((uint8_t*)ret - header_size);
@@ -175,40 +176,40 @@ TEST_F(MemMgrAllocateTests, AllMemoryInMinimumBlockSize) {
 
 TEST_F(MemMgrFreeTests, WrongAddress) {
 	int i;
-	memmgr_free(&mem, &i);
+	allocator_delete(&mem, &i);
 	ASSERT_EQ((min_block_size | 0b1), *(uint16_t*)&tiny_buf[0]);
 	ASSERT_EQ((min_block_size | 0b1),
 			  *(uint16_t*)&tiny_buf[tiny_buf_size - footer_size]);
 }
 
 TEST_F(MemMgrFreeTests, NoCoalescing) {
-	memmgr_free(&mem, sec_blk);
+	allocator_delete(&mem, sec_blk);
 	ASSERT_EQ(min_block_size, *(uint16_t*)&tiny_buf[min_block_size]);
 	ASSERT_EQ(min_block_size,
 			  *(uint16_t*)&tiny_buf[min_block_size * 2 - footer_size]);
 }
 
 TEST_F(MemMgrFreeTests, Coalescing) {
-	memmgr_free(&mem, fst_blk);
-	memmgr_free(&mem, trd_blk);
-	memmgr_free(&mem, sec_blk);
+	allocator_delete(&mem, fst_blk);
+	allocator_delete(&mem, trd_blk);
+	allocator_delete(&mem, sec_blk);
 	ASSERT_EQ(tiny_buf_size, *(uint16_t*)&tiny_buf[0]);
 	ASSERT_EQ(tiny_buf_size,
 			  *(uint16_t*)&tiny_buf[tiny_buf_size - footer_size]);
 }
 
 TEST_F(MemMgrFreeTests, AllReadyFreed) {
-	memmgr_free(&mem, fst_blk);
-	memmgr_free(&mem, trd_blk);
-	memmgr_free(&mem, sec_blk);
-	memmgr_free(&mem, sec_blk);
+	allocator_delete(&mem, fst_blk);
+	allocator_delete(&mem, trd_blk);
+	allocator_delete(&mem, sec_blk);
+	allocator_delete(&mem, sec_blk);
 	ASSERT_EQ(tiny_buf_size, *(uint16_t*)&tiny_buf[0]);
 	ASSERT_EQ(tiny_buf_size,
 			  *(uint16_t*)&tiny_buf[tiny_buf_size - footer_size]);
 }
 
 TEST_F(MemMgrRemainingTests, MiddleBlockAllocated) {
-	size_t remaining_size = memmgr_remaining(&mem);
+	size_t remaining_size = allocator_remaining(&mem);
 	ASSERT_EQ(remaining_size,
 			  (min_block_size * 2 - (header_size + footer_size) * 2));
 }

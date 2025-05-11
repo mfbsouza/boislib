@@ -6,7 +6,8 @@
 
 #include <gtest/gtest.h>
 #include <cstdint>
-#include "../circular_queue.h"
+
+#include "boislib/circular_queue.h"
 
 constexpr unsigned int buf_size = 256;
 constexpr unsigned int elmt_size = sizeof(int);
