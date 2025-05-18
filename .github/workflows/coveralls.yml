@@ -7,17 +7,43 @@ on:
       - dev
 
 jobs:
-  publish:
+  coveralls-report:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v31
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - uses: workflow/nix-shell-action@v3
-      with:
-        packages: zig,kcov
-        script: |
+      - name: Checkout boislib
+        uses: actions/checkout@v4
+        with:
+          path: boislib
+
+      - name: Checkout latest kcov code
+        uses: actions/checkout@v4
+        with:
+          repository: SimonKagstrom/kcov
+          path: kcov
+
+      - name: Build kcov
+        run: |
+          sudo apt -q install -y binutils-dev libssl-dev libcurl4-openssl-dev libelf-dev libstdc++-12-dev zlib1g-dev libdw-dev libiberty-dev
+          cd kcov
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make
+
+      - name: Dowload zig 0.14
+        run: |
+          wget -q https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.14.0.tar.xz
+          tar -C . -xf zig-linux-x86_64-0.14.0.tar.xz
+
+      - name: Confirm Zig and Kcov are usable
+        run: |
+          export PATH="$GITHUB_WORKSPACE/kcov/build/src:$GITHUB_WORKSPACE/zig-linux-x86_64-0.14.0:$PATH"
+          zig version
+          kcov --version
+
+      - name: Run tests and upload coverage report
+        run: |
+          export PATH="$GITHUB_WORKSPACE/kcov/build/src:$GITHUB_WORKSPACE/zig-linux-x86_64-0.14.0:$PATH"
+          cd boislib
           zig build tests -Doptimize=Debug
-          ls
-          kcov --clean --exclude-pattern=nix,usr,local,cache,_tests.cpp --coveralls-id=${{ secrets.COVERALLS_REPO_TOKEN }} kcov-output ./zig-out/bin/boislib_tests
+          kcov --clean --skip-solibs --include-path=src/ --coveralls-id=${{ secrets.COVERALLS_REPO_TOKEN }} kcov-output ./zig-out/bin/boislib_tests
